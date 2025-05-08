@@ -1,6 +1,5 @@
 package allAtOnce;
 
-
 import java.util.*;
 import java.util.regex.*;
 
@@ -14,6 +13,7 @@ public class Compiler3 {
     static class Token {
         TokenType type;
         String value;
+
         Token(TokenType type, String value) {
             this.type = type;
             this.value = value;
@@ -22,8 +22,7 @@ public class Compiler3 {
 
     // Valid keywords
     private static final Set<String> KEYWORDS = new HashSet<>(Arrays.asList(
-        "BEGIN", "INTEGER", "LET", "INPUT", "WRITE", "END"
-    ));
+            "BEGIN", "INTEGER", "LET", "INPUT", "WRITE", "END"));
 
     // Operator precedence
     private static final Map<String, Integer> precedence = new HashMap<>();
@@ -97,7 +96,6 @@ public class Compiler3 {
         tpToBinary.put("y", "01111001");
         tpToBinary.put("z", "01111010");
     }
-    
 
     // Declared identifiers
     private static Set<String> declaredIds = new HashSet<>();
@@ -106,15 +104,14 @@ public class Compiler3 {
     public static List<Token> tokenize(String line) {
         List<Token> tokens = new ArrayList<>();
         Pattern tokenPattern = Pattern.compile(
-            "\\b(BEGIN|INTEGER|LET|INPUT|WRITE|END)\\b|" +
-            "\\b([a-zA-Z]+)\\b|" +
-            "([+\\-*/])|" +
-            "([=,)])|" +
-            "(\\d+)|" +
-            "([;%$&<>])|" +
-            "(\\s+)|" +
-            "([^\\s])"
-        );
+                "\\b(BEGIN|INTEGER|LET|INPUT|WRITE|END)\\b|" +
+                        "\\b([a-zA-Z]+)\\b|" +
+                        "([+\\-*/])|" +
+                        "([=,)])|" +
+                        "(\\d+)|" +
+                        "([;%$&<>])|" +
+                        "(\\s+)|" +
+                        "([^\\s])");
         Matcher matcher = tokenPattern.matcher(line);
         while (matcher.find()) {
             if (matcher.group(1) != null) {
@@ -181,7 +178,7 @@ public class Compiler3 {
 
         // BEGIN, END
         if (tokens.size() == 1 && tokens.get(0).type == TokenType.KEYWORD &&
-            (tokens.get(0).value.equals("BEGIN") || tokens.get(0).value.equals("END"))) {
+                (tokens.get(0).value.equals("BEGIN") || tokens.get(0).value.equals("END"))) {
             return null;
         }
 
@@ -221,10 +218,10 @@ public class Compiler3 {
 
         // LET ID = E or ID = E
         if ((tokens.get(0).type == TokenType.KEYWORD && tokens.get(0).value.equals("LET") &&
-             tokens.get(1).type == TokenType.IDENTIFIER && tokens.get(2).type == TokenType.SYMBOL &&
-             tokens.get(2).value.equals("=")) ||
-            (tokens.get(0).type == TokenType.IDENTIFIER && tokens.get(1).type == TokenType.SYMBOL &&
-             tokens.get(1).value.equals("="))) {
+                tokens.get(1).type == TokenType.IDENTIFIER && tokens.get(2).type == TokenType.SYMBOL &&
+                tokens.get(2).value.equals("=")) ||
+                (tokens.get(0).type == TokenType.IDENTIFIER && tokens.get(1).type == TokenType.SYMBOL &&
+                        tokens.get(1).value.equals("="))) {
             int exprStart = tokens.get(0).value.equals("LET") ? 3 : 2;
             if (exprStart >= tokens.size()) {
                 return "Syntax error: Expected expression after '='";
@@ -268,7 +265,7 @@ public class Compiler3 {
                 return "Semantic error: Undeclared identifier '" + tokens.get(1).value + "'";
             }
         } else if ((tokens.get(0).type == TokenType.KEYWORD && tokens.get(0).value.equals("LET")) ||
-                   tokens.get(0).type == TokenType.IDENTIFIER) {
+                tokens.get(0).type == TokenType.IDENTIFIER) {
             String targetId = tokens.get(0).value.equals("LET") ? tokens.get(1).value : tokens.get(0).value;
             if (!declaredIds.contains(targetId)) {
                 return "Semantic error: Undeclared identifier '" + targetId + "'";
@@ -293,7 +290,8 @@ public class Compiler3 {
             if (token.type == TokenType.IDENTIFIER) {
                 output.add(token.value);
             } else if (token.type == TokenType.OPERATOR) {
-                while (!operatorStack.isEmpty() && precedence.getOrDefault(operatorStack.peek(), 0) >= precedence.get(token.value)) {
+                while (!operatorStack.isEmpty()
+                        && precedence.getOrDefault(operatorStack.peek(), 0) >= precedence.get(token.value)) {
                     output.add(operatorStack.pop());
                 }
                 operatorStack.push(token.value);
@@ -326,12 +324,14 @@ public class Compiler3 {
     }
 
     // Generate Assembly
-    public static List<String> generateAssembly(List<String> icr) {
+    public static List<String> generateAssembly(List<String> icr, String target) {
         List<String> assembly = new ArrayList<>();
         Pattern pattern = Pattern.compile("(\\w+)\\s*([+\\-*/])\\s*(\\w+)");
-        for (String instruction : icr) {
+        for (int i = 0; i < icr.size(); i++) {
+            String instruction = icr.get(i);
             String[] parts = instruction.split("=");
-            if (parts.length != 2) continue;
+            if (parts.length != 2)
+                continue;
             String temp = parts[0].trim();
             String expression = parts[1].trim();
             Matcher matcher = pattern.matcher(expression);
@@ -339,26 +339,27 @@ public class Compiler3 {
                 String op1 = matcher.group(1);
                 String operator = matcher.group(2);
                 String op2 = matcher.group(3);
+                String storeDest = (i == icr.size() - 1) ? target : temp; // new
                 switch (operator) {
                     case "+":
                         assembly.add("LDA " + op1);
                         assembly.add("ADD " + op2);
-                        assembly.add("STR " + temp);
+                        assembly.add("STR " + storeDest); // temp to storeDest
                         break;
                     case "-":
                         assembly.add("LDA " + op1);
                         assembly.add("SUB " + op2);
-                        assembly.add("STR " + temp);
+                        assembly.add("STR " + storeDest); // temp to storeDest
                         break;
                     case "*":
                         assembly.add("LDA " + op1);
                         assembly.add("MUL " + op2);
-                        assembly.add("STR " + temp);
+                        assembly.add("STR " + storeDest); // temp to storeDest
                         break;
                     case "/":
                         assembly.add("LDA " + op1);
                         assembly.add("DIV " + op2);
-                        assembly.add("STR " + temp);
+                        assembly.add("STR " + storeDest); // temp to storeDest
                         break;
                 }
             }
@@ -370,7 +371,8 @@ public class Compiler3 {
     public static List<String> optimizeAssembly(List<String> assembly) {
         List<String> optimized = new ArrayList<>();
         for (int i = 0; i < assembly.size(); i += 3) {
-            if (i + 2 >= assembly.size()) break;
+            if (i + 2 >= assembly.size())
+                break;
             String instr1 = assembly.get(i);
             String instr2 = assembly.get(i + 1);
             String instr3 = assembly.get(i + 2);
@@ -390,16 +392,17 @@ public class Compiler3 {
         List<String> tmc = new ArrayList<>();
         for (String instruction : optimized) {
             String[] parts = instruction.split("[ ,]+");
-            if (parts.length != 4) continue;
+            if (parts.length != 4)
+                continue;
             String operation = parts[0];
             String dest = parts[1];
             String op1 = parts[2];
             String op2 = parts[3];
 
             String opBinary = opToBinary.getOrDefault(operation, "00000000");
-            String destBinary = tpToBinary.getOrDefault(dest, "01110100");;
-            String op1Binary = tpToBinary.getOrDefault(op1, "01110100");;
-            String op2Binary = tpToBinary.getOrDefault(op2, "01110100");;
+            String destBinary = tpToBinary.getOrDefault(dest, "01110100");
+            String op1Binary = tpToBinary.getOrDefault(op1, "01110100");
+            String op2Binary = tpToBinary.getOrDefault(op2, "01110100");
 
             String line = opBinary + "  " + destBinary + "  " + op1Binary + "  " + op2Binary;
             tmc.add(line);
@@ -409,10 +412,17 @@ public class Compiler3 {
 
     public static void main(String[] args) {
         String[] program = {
-            "INTEGER A, B, C, E, M, N, G, H, I, a, c",
-            "LET G = a + c",
-            "M = A/B+C",
-            "N = G/H-I+a*B/c"
+                "BEGIN",
+                "INTEGER A, B, C, E, M, N, G, H, I, a, c",
+                "INPUT A, B, C",
+                "LET B = A * / M",
+                "LET G = a + c",
+                "temp = <s %* * h - j / w + d + * $&;",
+                "M = A / B + C",
+                "N = G / H - I + a * B / c",
+                "WRITE M",
+                "WRITEE F;",
+                "END"
         };
 
         System.out.println("V Compiler all at once ");
@@ -434,7 +444,8 @@ public class Compiler3 {
             StringBuilder tokenStr = new StringBuilder();
             for (int i = 0; i < tokens.size(); i++) {
                 tokenStr.append(String.format("%s (%s)", tokens.get(i).value, tokens.get(i).type));
-                if (i < tokens.size() - 1) tokenStr.append(", ");
+                if (i < tokens.size() - 1)
+                    tokenStr.append(", ");
             }
             System.out.println("  Tokens: " + tokenStr);
 
@@ -461,40 +472,39 @@ public class Compiler3 {
 
             System.out.println("  Status: Valid");
 
-            // Stop for non-expression lines
-            if (lineNum == 1) {
-                continue;
-            }
+            // Check if it's an expression line and generate code
+            if ((tokens.get(0).type == TokenType.KEYWORD && tokens.get(0).value.equals("LET")) ||
+                    (tokens.get(0).type == TokenType.IDENTIFIER && tokens.get(1).type == TokenType.SYMBOL && tokens.get(1).value.equals("="))) {
+                String target = tokens.get(0).value.equals("LET") ? tokens.get(1).value : tokens.get(0).value;
+                int exprStart = tokens.get(0).value.equals("LET") ? 3 : 2;
+                List<String> postfix = toPostfix(tokens, exprStart);
+                List<String> icr = generateICR(postfix);
+                System.out.println("  Postfix: " + postfix);
+                System.out.println("  ICR:");
+                for (String instr : icr) {
+                    System.out.println("    " + instr);
+                }
 
-            // Intermediate Code Representation
-            int exprStart = tokens.get(0).value.equals("LET") ? 3 : 2;
-            List<String> postfix = toPostfix(tokens, exprStart);
-            List<String> icr = generateICR(postfix);
-            System.out.println("  Postfix: " + postfix);
-            System.out.println("  ICR:");
-            for (String instr : icr) {
-                System.out.println("    " + instr);
-            }
+                // Code Generation
+                List<String> assembly = generateAssembly(icr, target);
+                System.out.println("  Assembly:");
+                for (String instr : assembly) {
+                    System.out.println("    " + instr);
+                }
 
-            // Code Generation
-            List<String> assembly = generateAssembly(icr);
-            System.out.println("  Assembly:");
-            for (String instr : assembly) {
-                System.out.println("    " + instr);
-            }
+                // Code Optimization
+                List<String> optimized = optimizeAssembly(assembly);
+                System.out.println("  Optimized Assembly:");
+                for (String instr : optimized) {
+                    System.out.println("    " + instr);
+                }
 
-            // Code Optimization
-            List<String> optimized = optimizeAssembly(assembly);
-            System.out.println("  Optimized Assembly:");
-            for (String instr : optimized) {
-                System.out.println("    " + instr);
-            }
-
-            // Target Machine Code
-            List<String> tmc = generateTMC(optimized);
-            System.out.println("  TMC:");
-            for (String code : tmc) {
-                System.out.println("    " + code);
+                // Target Machine Code
+                List<String> tmc = generateTMC(optimized);
+                System.out.println("  TMC:");
+                for (String code : tmc) {
+                    System.out.println("    " + code);
+                }
             }
         }
 

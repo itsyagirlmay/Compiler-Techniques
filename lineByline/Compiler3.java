@@ -408,10 +408,17 @@ public class Compiler3 {
 
     public static void main(String[] args) {
         String[] program = {
-            "INTEGER A, B, C, E, M, N, G, H, I, a, c",
-            "LET G = a + c",
-            "M = A/B+C",
-            "N = G/H-I+a*B/c"
+            "BEGIN",
+                "INTEGER A, B, C, E, M, N, G, H, I, a, c",
+                "INPUT A, B, C",
+                "LET B = A * / M",
+                "LET G = a + c",
+                "temp = <s %* * h - j / w + d + * $&;",
+                "M = A / B + C",
+                "N = G / H - I + a * B / c",
+                "WRITE M",
+                "WRITEE F;",
+                "END"
         };
 
         System.out.println("V Compiler line by line ");
@@ -461,7 +468,7 @@ public class Compiler3 {
             System.out.println("  Status: Valid");
 
             // Stop for non-expression lines
-            if (lineNum == 1) {
+            if (!(lineNum == 5||lineNum == 7||lineNum == 8)) {
                 continue;
             }
 
