@@ -41,6 +41,62 @@ public class Compiler3 {
         opToBinary.put("ADD", "01000001");
         opToBinary.put("SUB", "01010011");
     }
+    private static final Map<String, String> tpToBinary = new HashMap<>();
+    static {
+        tpToBinary.put("A", "01000001");
+        tpToBinary.put("B", "01000010");
+        tpToBinary.put("C", "01000011");
+        tpToBinary.put("D", "01000100");
+        tpToBinary.put("E", "01000101");
+        tpToBinary.put("F", "01000110");
+        tpToBinary.put("G", "01000111");
+        tpToBinary.put("H", "01001000");
+        tpToBinary.put("I", "01001001");
+        tpToBinary.put("J", "01001010");
+        tpToBinary.put("K", "01001011");
+        tpToBinary.put("L", "01001100");
+        tpToBinary.put("M", "01001101");
+        tpToBinary.put("N", "01001110");
+        tpToBinary.put("O", "01001111");
+        tpToBinary.put("P", "01010000");
+        tpToBinary.put("Q", "01010001");
+        tpToBinary.put("R", "01010010");
+        tpToBinary.put("S", "01010011");
+        tpToBinary.put("T", "01010100");
+        tpToBinary.put("U", "01010101");
+        tpToBinary.put("V", "01010110");
+        tpToBinary.put("W", "01010111");
+        tpToBinary.put("X", "01011000");
+        tpToBinary.put("Y", "01011001");
+        tpToBinary.put("Z", "01011010");
+        tpToBinary.put("a", "01100001");
+        tpToBinary.put("b", "01100010");
+        tpToBinary.put("c", "01100011");
+        tpToBinary.put("d", "01100100");
+        tpToBinary.put("e", "01100101");
+        tpToBinary.put("f", "01100110");
+        tpToBinary.put("g", "01100111");
+        tpToBinary.put("h", "01101000");
+        tpToBinary.put("i", "01101001");
+        tpToBinary.put("j", "01101010");
+        tpToBinary.put("k", "01101011");
+        tpToBinary.put("l", "01101100");
+        tpToBinary.put("m", "01101101");
+        tpToBinary.put("n", "01101110");
+        tpToBinary.put("o", "01101111");
+        tpToBinary.put("p", "01110000");
+        tpToBinary.put("q", "01110001");
+        tpToBinary.put("r", "01110010");
+        tpToBinary.put("s", "01110011");
+        tpToBinary.put("t", "01110100");
+        tpToBinary.put("u", "01110101");
+        tpToBinary.put("v", "01110110");
+        tpToBinary.put("w", "01110111");
+        tpToBinary.put("x", "01111000");
+        tpToBinary.put("y", "01111001");
+        tpToBinary.put("z", "01111010");
+    }
+    
 
     // Declared identifiers
     private static Set<String> declaredIds = new HashSet<>();
@@ -340,9 +396,9 @@ public class Compiler3 {
             String op2 = parts[3];
 
             String opBinary = opToBinary.getOrDefault(operation, "00000000");
-            String destBinary = "01110100";
-            String op1Binary = "01110100";
-            String op2Binary = "01110100";
+            String destBinary = tpToBinary.getOrDefault(dest, "01110100");;
+            String op1Binary = tpToBinary.getOrDefault(op1, "01110100");;
+            String op2Binary = tpToBinary.getOrDefault(op2, "01110100");;
 
             String line = opBinary + "  " + destBinary + "  " + op1Binary + "  " + op2Binary;
             tmc.add(line);
@@ -352,17 +408,10 @@ public class Compiler3 {
 
     public static void main(String[] args) {
         String[] program = {
-            "BEGIN",
             "INTEGER A, B, C, E, M, N, G, H, I, a, c",
-            "INPUT A, B, C",
-            "LET B = A */ M",
             "LET G = a + c",
-            "temp = <s%**h - j / w +d +*$&;",
             "M = A/B+C",
-            "N = G/H-I+a*B/c",
-            "WRITE M",
-            "WRITEE F;",
-            "END"
+            "N = G/H-I+a*B/c"
         };
 
         System.out.println("V Compiler line by line ");
@@ -412,7 +461,7 @@ public class Compiler3 {
             System.out.println("  Status: Valid");
 
             // Stop for non-expression lines
-            if (!(lineNum == 5 || lineNum == 7 || lineNum == 8)) {
+            if (lineNum == 1) {
                 continue;
             }
 
